@@ -89,6 +89,24 @@ const VideoPage = () => {
     toggleFavorite.mutate(id || '');
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: video?.title || 'BlackBunny', url });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!');
+    }
+  };
+
+  const handleEmbed = async () => {
+    const embedCode = `<iframe src="${window.location.href}" width="800" height="450" frameborder="0" allowfullscreen></iframe>`;
+    await navigator.clipboard.writeText(embedCode);
+    toast.success('Embed code copied to clipboard!');
+  };
+
   if (isLoading || !video) {
     return (
       <div className="flex justify-center py-32">
