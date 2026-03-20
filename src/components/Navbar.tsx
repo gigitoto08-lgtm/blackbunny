@@ -40,7 +40,7 @@ const Navbar = () => {
             </span>
           </a>
 
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl mx-8 relative group">
+          <form onSubmit={handleSearch} className="flex flex-1 max-w-2xl mx-4 md:mx-8 relative group">
             <input
               type="text"
               value={searchValue}
