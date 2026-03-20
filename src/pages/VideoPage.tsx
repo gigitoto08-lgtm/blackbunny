@@ -146,10 +146,10 @@ const VideoPage = () => {
                   <Heart className="w-4 h-4" /> Save
                 </button>
               )}
-              <button onClick={() => alert('Embed code copied to clipboard!')} className="flex items-center gap-2 bg-secondary border border-white/10 hover:bg-white/10 px-5 py-2.5 rounded-full text-sm font-bold transition-colors hover:text-white shadow-sm">
+              <button onClick={handleEmbed} className="flex items-center gap-2 bg-secondary border border-white/10 hover:bg-white/10 px-5 py-2.5 rounded-full text-sm font-bold transition-colors hover:text-white shadow-sm">
                 <Code className="w-4 h-4" /> Embed
               </button>
-              <button className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full text-sm font-bold hover:bg-gray-200 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+              <button onClick={handleShare} className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-full text-sm font-bold hover:bg-gray-200 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.2)]">
                 <Share2 className="w-4 h-4 text-black" /> Share
               </button>
             </div>
