@@ -6,6 +6,7 @@ import { useRecordView, useToggleLike, useToggleFavorite, useUserLikes } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import VideoCard from '@/components/VideoCard';
 import { Loader, Heart } from 'lucide-react';
+import { toast } from 'sonner';
 
 const formatNumber = (num: number | null) => Number(num || 0).toLocaleString();
 
