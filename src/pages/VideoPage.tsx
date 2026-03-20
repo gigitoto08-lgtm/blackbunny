@@ -81,7 +81,11 @@ const VideoPage = () => {
 
   const handleLike = () => {
     if (!user) return;
-    toggleLike.mutate(id || '');
+    toggleLike.mutate(id || '', {
+      onSuccess: ({ liked }) => {
+        setLikeHighlighted(liked);
+      },
+    });
   };
 
   const handleFavorite = () => {
@@ -94,10 +98,19 @@ const VideoPage = () => {
     if (navigator.share) {
       try {
         await navigator.share({ title: video?.title || 'BlackBunny', url });
-      } catch {}
-    } else {
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
+      }
+    }
+
+    try {
       await navigator.clipboard.writeText(url);
       toast.success('Link copied to clipboard!');
+    } catch {
+      toast.error('Unable to share this link right now.');
     }
   };
 

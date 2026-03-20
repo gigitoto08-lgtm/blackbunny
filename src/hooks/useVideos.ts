@@ -8,20 +8,26 @@ export const useVideos = (searchQuery?: string) => {
   return useQuery({
     queryKey: ['videos', searchQuery],
     queryFn: async () => {
-      let query = supabase.from('videos').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('videos').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
 
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        query = supabase
-          .from('videos')
-          .select('*')
-          .or(`title.ilike.%${q}%,category.ilike.%${q}%,tags.cs.{${q}}`)
-          .order('created_at', { ascending: false });
+      if (!searchQuery) {
+        return data as Video[];
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Video[];
+      const q = searchQuery.toLowerCase().trim();
+
+      return (data as Video[]).filter((video) =>
+        [
+          video.title,
+          video.category,
+          video.channel,
+          ...(video.tags || []),
+          ...(video.pornstars || []),
+        ]
+          .filter(Boolean)
+          .some((value) => value!.toLowerCase().includes(q))
+      );
     },
     staleTime: 30000,
   });
