@@ -27,7 +27,56 @@ export const useToggleLike = () => {
     mutationFn: async (videoId: string) => {
       const { data, error } = await supabase.rpc('toggle_like', { vid: videoId });
       if (error) throw error;
-      return data;
+      return { videoId, liked: data };
+    },
+    onMutate: async (videoId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['video', videoId] });
+      await queryClient.cancelQueries({ queryKey: ['videos'] });
+      await queryClient.cancelQueries({ queryKey: ['userLikes'] });
+
+      const previousVideo = queryClient.getQueryData<any>(['video', videoId]);
+      const previousVideos = queryClient.getQueriesData({ queryKey: ['videos'] });
+      const previousUserLikes = queryClient.getQueriesData({ queryKey: ['userLikes'] });
+      const isLiked = previousUserLikes.flatMap(([, data]) => (Array.isArray(data) ? data : [])).includes(videoId);
+      const nextLiked = !isLiked;
+
+      queryClient.setQueryData(['video', videoId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          likes: Math.max((old.likes || 0) + (nextLiked ? 1 : -1), 0),
+        };
+      });
+
+      previousVideos.forEach(([queryKey]) => {
+        queryClient.setQueryData(queryKey, (old: any) => {
+          if (!Array.isArray(old)) return old;
+          return old.map((video) =>
+            video.id === videoId
+              ? { ...video, likes: Math.max((video.likes || 0) + (nextLiked ? 1 : -1), 0) }
+              : video
+          );
+        });
+      });
+
+      previousUserLikes.forEach(([queryKey]) => {
+        queryClient.setQueryData(queryKey, (old: any) => {
+          if (!Array.isArray(old)) return old;
+          return nextLiked ? [...old, videoId] : old.filter((id: string) => id !== videoId);
+        });
+      });
+
+      return { previousVideo, previousVideos, previousUserLikes, videoId };
+    },
+    onError: (_error, videoId, context) => {
+      if (!context) return;
+      queryClient.setQueryData(['video', videoId], context.previousVideo);
+      context.previousVideos.forEach(([queryKey, data]: [readonly unknown[], unknown]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+      context.previousUserLikes.forEach(([queryKey, data]: [readonly unknown[], unknown]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['video'] });
@@ -71,7 +120,8 @@ export const useUserLikes = () => {
     queryKey: ['userLikes', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase.from('likes').select('video_id').eq('user_id', user.id);
+      const { data, error } = await supabase.from('likes').select('video_id').eq('user_id', user.id);
+      if (error) throw error;
       return (data || []).map((l) => l.video_id);
     },
     enabled: !!user,

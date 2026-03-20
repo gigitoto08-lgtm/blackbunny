@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, User, LogOut } from 'lucide-react';
 import BunnyLogo from './BunnyLogo';
 import AuthModal from './AuthModal';
@@ -10,7 +10,12 @@ const Navbar = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    setSearchValue(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
